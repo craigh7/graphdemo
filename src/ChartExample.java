@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
@@ -16,6 +17,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+import javax.swing.filechooser.FileSystemView;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -33,30 +35,36 @@ import java.io.File;
 import java.io.FileReader;  
 
 public class ChartExample extends JPanel implements ActionListener{
+	private JFrame frame;
+	private String[] coord = {};
 	
-		private static JFrame frame;
-		JButton thebutton;
+	public ChartExample(JFrame frame) {
+		this.frame = frame;
 		
-		public ChartExample(JFrame frame) {
-			this.frame = frame;
-		}
+	}
+		
+
+		public ChartExample() {
+		// TODO Auto-generated constructor stub
+	}
 
 
-		private void getValues(Graphics g) throws IOException{
+		private void getValues(File file) throws IOException{
 			
 
 			
-			String fileName = "C:\\Users\\Craig\\eclipse-workspace\\Graph\\sample.las";
+			//String fileName = "C:\\Users\\Craig\\eclipse-workspace\\Graph\\sample.las";
 	                
-			String content = new String(new String(Files.readAllBytes( Paths.get(fileName))));
+			String content = new String(new String(Files.readAllBytes(file.toPath())));
 			
 			content = content.substring(content.lastIndexOf("~A") + 2);
 			
 			String[] lines = content.split("\\r?\\n");
 			
 			LinkedList<Vector<String>> coordsList=new LinkedList<Vector<String>>();
+			this.coord=lines;
 			
-			
+			/*
 			for (String line: lines) {
 				
 				
@@ -64,21 +72,24 @@ public class ChartExample extends JPanel implements ActionListener{
 				for (String coord : oneline) {
 					if (oneline.length>1) {
 						System.out.println(oneline[0]+ " " + oneline[1]);
-						drawCoord(oneline[0], oneline[1], g);
+						drawCoord(oneline[0], oneline[1]);
+						
 					}
 				}
 			}
+			*/
 			
 			//return coordsList;
 		}
-			
-		public static void drawCoord(String xcoord, String ycoord, Graphics g) {
+			/*
+		public static void drawCoord(String xcoord, String ycoord) {
 			int x = 20 + (int)(Math.round(Double.parseDouble(xcoord)))  ;
 			int y = 520 - (int)(Math.round(Double.parseDouble(ycoord )) ) * 10;
 			g.drawLine(x, y, x, y);
 		}
-		
+		*/
 		 public void paintComponent(Graphics g) {
+			 
 			 
 		     //vertical line
 		     g.setColor(Color.black);
@@ -87,39 +98,73 @@ public class ChartExample extends JPanel implements ActionListener{
 		     //horizontal line
 		     g.setColor(Color.black);
 		     g.drawLine(20, 520, 850, 520);
-		     try {
-				getValues(g);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		     
-		    
 		     
+		     String[] coord = this.coord;
+		     
+		     if (coord.length>0) 
+		     {
+		    	 for (String line: coord) {
+						
+						
+						String[] oneline=line.split(",");
+						for (String xy : oneline) {
+							if (oneline.length>1) {
+								int x = 20 + (int)(Math.round(Double.parseDouble(oneline[0])))  ;
+								int y = 520 - (int)(Math.round(Double.parseDouble(oneline[1] )) ) * 10;
+								g.drawLine(x,y,x,y);
+								
+							}
+						}
+					}
+		     }
 		  }
 		 
-		  public static void main(String[] args) {
-		    JFrame.setDefaultLookAndFeelDecorated(true);
+	  public static void main(String[] args) {
+		  
+		  ChartExample chartExample = new ChartExample();
+		  chartExample.go();
+	  }
+		  
+	    public void go()
+	    {
+	    	JFrame.setDefaultLookAndFeelDecorated(true);
+		    
 		    
 		    JFrame frame = new JFrame("Draw Line");
 		    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		    frame.setBackground(Color.white);
 		    frame.setSize(900, 600);
-				
+		    
+		    JButton button = new JButton("Load File");
+		    button.addActionListener(this);
 		    ChartExample panel = new ChartExample(frame);
-		 
-		    frame.add(panel);
+		    panel.setVisible(true);
+		    frame.add(BorderLayout.NORTH, panel);
+		    frame.add(BorderLayout.NORTH, button);
+		    //frame.add(BorderLayout.SOUTH, button);
 		 
 		    frame.setVisible(true);
-		  }
+	    }
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
-			thebutton.setText("I've been clicked");
-			
-			
-		}
+			JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
 
-		
+			int returnValue = jfc.showOpenDialog(null);
+			// int returnValue = jfc.showSaveDialog(null);
+
+			if (returnValue == JFileChooser.APPROVE_OPTION) {
+				File selectedFile = jfc.getSelectedFile();
+				
+				try {
+					getValues(selectedFile);
+					
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+					}
+		}
 }
